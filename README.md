@@ -1,1 +1,1 @@
-[`goto`](https://hemmouda.com)
+[`GOTO`](https://hemmouda.com)
