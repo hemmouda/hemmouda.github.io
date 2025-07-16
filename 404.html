@@ -47,22 +47,20 @@
         }
     </style>
     <script>
-        // Redirect to the repo if it exists
+        // Redirect to repo if it exists
         document.addEventListener("DOMContentLoaded", () => {
             try {
-                const currentUrl = new URL(window.location.href);
-                const targetUrl = new URL(currentUrl.pathname, "https://github.com/hemmouda");
+                const path = window.location.pathname;
+                if (!path) return;
+                const targetUrl = `https://github.com/hemmouda/${path}`;
 
-                fetch(targetUrl, { method: "HEAD" })
-                    .then(res => {
-                        if (res.status !== 404) {
-                            window.location.href = targetUrl.toString();
-                        }
-                    })
-                    .catch(() => { });
+                const img = new Image();
+                img.onload = () => window.location.href = targetUrl;
+                img.onerror = () => { /* Repo doesn't exist */ };
+                img.src = `${targetUrl}.png`; // Probes existence
             } catch { }
         });
-
+        // Thanks ChatJeopardy
     </script>
 </head>
 
