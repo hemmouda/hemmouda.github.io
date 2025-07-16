@@ -57,49 +57,76 @@
     <script>
         // Redirect to repo if it exists
         document.addEventListener("DOMContentLoaded", () => {
-            const spinner = document.getElementById('spinner');
-            const container = document.getElementById('container');
-
-            showPage = () => {
-                spinner.style.display = 'none';
-                container.style.display = 'block';
-                document.title = '404 - Page not found';
-            }
-
-            const path = window.location.pathname.replace(/^\/+/, '');
-            if (!path) {
-                showPage();
-                return;
-            }
-
-            const [user, repo] = ["hemmouda", path];
-            const targetUrl = `https://github.com/${user}/${repo}`;
-            const timeoutMs = 3000;
-            let timeoutReached = false;
-
-            const img = new Image();
-
-            const timeout = setTimeout(() => {
-                timeoutReached = true;
-                showPage();
-            }, timeoutMs);
-
-            img.onload = () => {
-                if (!timeoutReached) {
-                    clearTimeout(timeout);
+        const spinner = document.getElementById('spinner');
+        const container = document.getElementById('container');
+    
+        const showPage = () => {
+            spinner.style.display = 'none';
+            container.style.display = 'block';
+            document.title = '404 - Page not found';
+        }
+    
+        const path = window.location.pathname.replace(/^\/+/, '');
+        if (!path) {
+            showPage();
+            return;
+        }
+    
+        const [user, repo] = ["hemmouda", path];
+        const targetUrl = `https://github.com/${user}/${repo}`;
+        const imageUrl = `https://opengraph.githubassets.com/1/${user}/${repo}`;
+        const fallbackImageUrl = `https://opengraph.githubassets.com/1/hemmouda/_definitely_nonexistent_repo_`;
+    
+        const timeoutMs = 5000;
+        let timeoutReached = false;
+    
+        const timeout = setTimeout(() => {
+            timeoutReached = true;
+            showPage();
+        }, timeoutMs);
+    
+        const loadImage = (src) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
+        }
+    
+        const getImageData = (img) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            return canvas.toDataURL();
+        }
+    
+        (async () => {
+            const [targetImg, fallbackImg] = await Promise.all([
+                loadImage(imageUrl),
+                loadImage(fallbackImageUrl)
+            ]);
+    
+            if (timeoutReached) return;
+    
+            clearTimeout(timeout);
+    
+            if (targetImg && fallbackImg) {
+                const data1 = getImageData(targetImg);
+                const data2 = getImageData(fallbackImg);
+                if (data1 === data2) {
+                    showPage();
+                } else {
                     window.location.href = targetUrl;
                 }
-            };
-
-            img.onerror = () => {
-                if (!timeoutReached) {
-                    clearTimeout(timeout);
-                    showPage()
-                }
-            };
-
-            img.src = `https://opengraph.githubassets.com/1/${user}/${repo}`;
-        });
+            } else {
+                showPage();
+            }
+        })();
+    });
         // Thanks ChatJeopardy
     </script>
 </head>
