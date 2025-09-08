@@ -127,6 +127,27 @@
 
     <script>
         const ball = document.getElementById('ball');
+        
+        let tiltSupported = false;
+        
+        // Check for tilt support
+        if (typeof DeviceOrientationEvent !== 'undefined') {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS requires permission, so treat as unsupported without user gesture
+                tiltSupported = false;
+            } else {
+                tiltSupported = true;
+            }
+        }
+        
+        if (!tiltSupported) {
+            ball.style.display = 'none'; // hide ball if tilt not supported
+        } else {
+            window.addEventListener('deviceorientation', e => {
+                if (typeof e.gamma === 'number') tiltAx = e.gamma * TILT_ACCEL;
+            });
+        }
+        
         const GRAVITY = 2000, H_ACCEL = 4000, JUMP_V = 800, DRAG_X = 2;
         const BOUNCE_X = 0.9, BOUNCE_Y = 0.7, BOUNCE_THRESHOLD = 140;
         const TILT_ACCEL = 50, MAX_VX = 700;
@@ -138,10 +159,6 @@
 
         addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
         addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-
-        addEventListener('deviceorientation', e => {
-            if (typeof e.gamma === 'number') tiltAx = e.gamma * TILT_ACCEL;
-        });
 
         let last = performance.now();
         function loop(now) {
